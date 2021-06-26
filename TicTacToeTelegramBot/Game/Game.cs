@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot;
@@ -6,7 +7,7 @@ using TicTacToeTelegramBot.GameMap;
 
 namespace TicTacToeTelegramBot.Game
 {
-    public class Game
+    public class Game: IDisposable
     {
         private readonly Player _playerOne;
         private readonly Player _playerTwo;
@@ -14,13 +15,13 @@ namespace TicTacToeTelegramBot.Game
         private readonly TelegramBotClient _bot;
         private readonly IGameMap _gameMap;
         public bool IsEnded { set; get; }
-        public Game( TelegramBotClient bot, Player playerOne, Player playerTwo)
+        public Game( TelegramBotClient bot, Player playerOne, Player playerTwo, IGameMap gameMap)
         {
             _playerOne = playerOne;
             _playerTwo = playerTwo;
             _bot = bot;
             _playerTurn = GameMapEnum.PlayerOne;
-            _gameMap.Bot = _bot;
+            _gameMap = gameMap;
             bot.OnCallbackQuery += OnClick;
         }
         private async void OnClick(object sender, CallbackQueryEventArgs e)
@@ -30,24 +31,30 @@ namespace TicTacToeTelegramBot.Game
             {
                 int[] coords = e.CallbackQuery.Data.Split('|').Select(x => int.Parse(x)).ToArray();
                 var curPlayer = (_playerTurn == GameMapEnum.PlayerOne) ? _playerOne : _playerTwo;
-                if (e.CallbackQuery.From.Id == curPlayer.Id)
+                if ("@" + e.CallbackQuery.From.Username == curPlayer.Tag)
                 {
-                    bool isWin = _gameMap.SetPosition(_playerTurn, coords[0], coords[1]);
-                    if (isWin)
+                    if (_gameMap.SetPosition(_playerTurn, coords[0], coords[1]))
                     {
-                        await _bot.SendTextMessageAsync(e.CallbackQuery.Message.Chat,
-                            $"Player {curPlayer.Name} is winner :)");
-                        IsEnded = true;
-                    }
-                    else
-                    {
-                        await _gameMap.RenderAsync(e.CallbackQuery.Message.Chat);
-                        _playerTurn = (_playerTurn == GameMapEnum.PlayerOne)
-                            ? GameMapEnum.PlayerTwo
-                            : GameMapEnum.PlayerOne;
+                        await _gameMap.RenderAsync(e.CallbackQuery.Message, _playerTurn);
+                        if (_gameMap.CheckWin())
+                        {
+                            await _bot.SendTextMessageAsync(e.CallbackQuery.Message.Chat,
+                                $"Player {curPlayer.Tag} is winner :)");
+                            IsEnded = true;
+                        }
+                        else
+                        {
+                            _playerTurn = (_playerTurn == GameMapEnum.PlayerOne)
+                                ? GameMapEnum.PlayerTwo
+                                : GameMapEnum.PlayerOne;
+                        }
                     }
                 }
             }
+        }
+        public void Dispose()
+        {
+            _bot.OnCallbackQuery -= OnClick;
         }
     }
 }
