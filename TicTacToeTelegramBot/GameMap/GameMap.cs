@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -12,44 +9,55 @@ namespace TicTacToeTelegramBot.GameMap
 {
     class GameMap : IGameMap
     {
-
-        private int[,] map = new int[3, 3];
-        public TelegramBotClient Bot { get; set; }
-
-        public async Task RenderAsync(ChatId id)
+        private uint _size = 3;
+        private int[,] _map = new int[3, 3];
+        public TelegramBotClient Bot { init; get; }
+        private InlineKeyboardButton[][] RendKeys()
         {
-            var a = new InlineKeyboardButton[3][];
-            for (int i = 0; i < 3; i++)
+            var keyboardButtons = new InlineKeyboardButton[_size][];
+            for (int i = 0; i < _size; i++)
             {
-                a[i] = new InlineKeyboardButton[3];
-                for (int j = 0; j < 3; j++)
+                keyboardButtons[i] = new InlineKeyboardButton[_size];
+                for (int j = 0; j < _size; j++)
                 {
-                    a[i][j] = InlineKeyboardButton.WithCallbackData(map[i, j] == 1 ? "O" : (map[i, j] == 2 ? "X" : ""), $"{i}|{j}");
+                    keyboardButtons[i][j] = InlineKeyboardButton.WithCallbackData(_map[i, j] == 1 ? "X" : (_map[i, j] == 2 ? "O" : ""), $"{i}|{j}");
                 }
-                Console.WriteLine();
             }
+            return keyboardButtons;
+        }
+        public async Task RenderAsync(Message message, GameMapEnum playerTurn)
+        {
+            await Bot.EditMessageTextAsync(message.Chat, message.MessageId, 
+                $"Player - { ( (playerTurn==GameMapEnum.PlayerOne)? "X":"O" )}");
+            await Bot.EditMessageReplyMarkupAsync(message.Chat, message.MessageId,
+                new InlineKeyboardMarkup(RendKeys()));
+        }
 
-            Message message = await Bot.SendTextMessageAsync(
+        public async Task StartAsync(ChatId id)
+        {
+            await Bot.SendTextMessageAsync(
                 chatId: id,
-                text: "Trying *all the parameters* of sendMessage method",
+                text: "Player - X",
                 parseMode: ParseMode.Markdown,
                 disableNotification: true,
-                replyMarkup: new InlineKeyboardMarkup(a)
+                replyMarkup: new InlineKeyboardMarkup(RendKeys())
             );
         }
 
         public bool SetPosition(GameMapEnum player, int x, int y)
         {
-            if (map[x, y] == 0)
+            if (_map[x, y] == 0)
             {
-                map[x, y] = ((int)player);
+                _map[x, y] = ((int)player);
                 return true;
             }
-            else
-            {
-                Console.WriteLine("this field is already occupied ");
-                return false;
-            }
+            Console.WriteLine("this field is already occupied ");
+            return false;
+        }
+
+        public bool CheckWin()
+        {
+            return false;
         }
     }
 }
