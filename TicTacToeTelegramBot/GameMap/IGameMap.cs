@@ -10,8 +10,10 @@ namespace TicTacToeTelegramBot.GameMap
 {
     public interface IGameMap
     {
-        public TelegramBotClient Bot { set; get; }
-        public Task RenderAsync(ChatId id);
+        public TelegramBotClient Bot { init; get; }
+        public Task RenderAsync(Message message, GameMapEnum playerTurn);
+        public Task StartAsync(ChatId id);
         public bool SetPosition(GameMapEnum player, int x, int y);
+        public bool CheckWin();
     }
 }
