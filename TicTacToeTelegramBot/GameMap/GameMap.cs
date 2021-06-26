@@ -57,6 +57,20 @@ namespace TicTacToeTelegramBot.GameMap
 
         public bool CheckWin()
         {
+            for (int i = 0; i < 3; i++)
+            {
+                if (_map[i, 0] ==  _map[i, 1] && _map[i, 0] == _map[i, 2])
+                    return true;
+                if (_map[0, i] == _map[1, i] && _map[0, i] == _map[2, i])
+                    return true;
+            }
+
+            if (_map[0, 0] == _map[1, 1] && _map[0, 0] == _map[2, 2])
+                return true;
+
+            if (_map[0, 2] ==  _map[1, 1] && _map[0, 2] == _map[2, 0])
+                return true;
+
             return false;
         }
     }
