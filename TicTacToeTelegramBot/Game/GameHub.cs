@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Args;
 using TicTacToeTelegramBot.GameMap;
@@ -12,11 +13,20 @@ namespace TicTacToeTelegramBot.Game
 
         private const int _maxGames = 10; 
 
-        private List<(DateTime TimeStart, Game)> _games = new();
+        private List<(DateTime TimeStart, Game Game)> _games = new();
         public GameHub(TelegramBotClient bot)
         {
             _bot = bot;
             _bot.OnMessage += BotOnMessage;
+            Task.Run(CheckGames);
+        }
+        private async void CheckGames()
+        {
+            while (true)
+            {
+                await Task.Delay(30_1000);
+                _games.RemoveAll(g => DateTime.UtcNow - g.TimeStart <= TimeSpan.FromMinutes(10) && g.Game.IsEnded);
+            }
         }
         private async void BotOnMessage(object sender, MessageEventArgs e)
         {
