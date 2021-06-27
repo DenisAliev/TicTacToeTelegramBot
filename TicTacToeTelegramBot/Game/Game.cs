@@ -36,7 +36,7 @@ namespace TicTacToeTelegramBot.Game
                     if (_gameMap.SetPosition(_playerTurn, coords[0], coords[1]))
                     {
                         await _gameMap.RenderAsync(e.CallbackQuery.Message, _playerTurn);
-                        if (_gameMap.CheckWin())
+                        if (_gameMap.CheckWin(_playerTurn))
                         {
                             await _bot.SendTextMessageAsync(e.CallbackQuery.Message.Chat,
                                 $"Player {curPlayer.Tag} is winner :)");

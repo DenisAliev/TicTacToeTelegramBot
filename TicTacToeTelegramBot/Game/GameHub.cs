@@ -13,12 +13,14 @@ namespace TicTacToeTelegramBot.Game
 
         private const int _maxGames = 10;
         private const int _maxMinutes = 10;
+        private readonly IGameMapFactory _gameMapFactory;
 
         private List<(DateTime TimeStart, Game Game)> _games = new();
         public GameHub(TelegramBotClient bot)
         {
             _bot = bot;
             _bot.OnMessage += BotOnMessage;
+            _gameMapFactory = new GameMapFactory(_bot);
             Task.Run(CheckGames);
         }
         private async void CheckGames()
@@ -26,7 +28,7 @@ namespace TicTacToeTelegramBot.Game
             while (true)
             {
                 await Task.Delay(30_1000);
-                _games.RemoveAll(g => DateTime.UtcNow - g.TimeStart <= TimeSpan.FromMinutes(_maxMinutes) && g.Game.IsEnded);
+                _games.RemoveAll(g => DateTime.UtcNow - g.TimeStart >= TimeSpan.FromMinutes(_maxMinutes) || g.Game.IsEnded);
             }
         }
         private async void BotOnMessage(object sender, MessageEventArgs e)
@@ -34,9 +36,9 @@ namespace TicTacToeTelegramBot.Game
             if (e.Message.Text != null)
             {
                 string[] command = e.Message.Text.Split(' ');
-                if (command.Length == 3)
+                if (command.Length == 4)
                 {
-                    if (command[0] == "/start" && _games.Count != _maxGames)
+                    if (command[0] == "/start_game" && _games.Count != _maxGames)
                     {
                         Player playerOne = new Player
                         {
@@ -48,10 +50,9 @@ namespace TicTacToeTelegramBot.Game
                             ChatId = e.Message.Chat,
                             Tag = command[2]
                         };
-                        IGameMap gameMap = new GameMap.GameMap
-                        {
-                            Bot = _bot
-                        };
+                        uint size =  (uint) ((int.TryParse(command[3], out int result)) ? result : 3);
+                        
+                        IGameMap gameMap = _gameMapFactory.GetGameMap(GameMapTypeEnum.Default, Math.Max(size, 3));
                         await gameMap.StartAsync(e.Message.Chat);
                         _games.Add( (DateTime.UtcNow ,new Game( _bot, playerOne, playerTwo, gameMap )));
                     }
