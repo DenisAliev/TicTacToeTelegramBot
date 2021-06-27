@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,10 +11,9 @@ namespace TicTacToeTelegramBot.GameMap
 {
     public interface IGameMap
     {
-        public TelegramBotClient Bot { init; get; }
         public Task RenderAsync(Message message, GameMapEnum playerTurn);
         public Task StartAsync(ChatId id);
         public bool SetPosition(GameMapEnum player, int x, int y);
-        public bool CheckWin();
+        public bool CheckWin( GameMapEnum player);
     }
 }
