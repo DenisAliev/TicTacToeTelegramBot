@@ -36,10 +36,18 @@ namespace TicTacToeTelegramBot.GameMap
         }
         public async Task RenderAsync(Message message, GameMapEnum playerTurn)
         {
-            await _bot.EditMessageTextAsync(message.Chat, message.MessageId, 
-                $"Player - { ( (playerTurn!=GameMapEnum.PlayerOne)? "X":"O" )}");
-            await _bot.EditMessageReplyMarkupAsync(message.Chat, message.MessageId,
-                new InlineKeyboardMarkup(RendKeys()));
+            try
+            {
+                await _bot.EditMessageTextAsync(message.Chat, message.MessageId, 
+                    $"Player - { ( (playerTurn!=GameMapEnum.PlayerOne)? "X":"O" )}");
+                await _bot.EditMessageReplyMarkupAsync(message.Chat, message.MessageId,
+                    new InlineKeyboardMarkup(RendKeys()));
+            }
+            catch (Exception e)
+            {
+                RenderAsync(message, playerTurn);
+            }
+           
         }
 
         public async Task StartAsync(ChatId id)
