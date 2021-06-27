@@ -11,7 +11,8 @@ namespace TicTacToeTelegramBot.Game
     {
         private readonly TelegramBotClient _bot;
 
-        private const int _maxGames = 10; 
+        private const int _maxGames = 10;
+        private const int _maxMinutes = 10;
 
         private List<(DateTime TimeStart, Game Game)> _games = new();
         public GameHub(TelegramBotClient bot)
@@ -25,7 +26,7 @@ namespace TicTacToeTelegramBot.Game
             while (true)
             {
                 await Task.Delay(30_1000);
-                _games.RemoveAll(g => DateTime.UtcNow - g.TimeStart <= TimeSpan.FromMinutes(10) && g.Game.IsEnded);
+                _games.RemoveAll(g => DateTime.UtcNow - g.TimeStart <= TimeSpan.FromMinutes(_maxMinutes) && g.Game.IsEnded);
             }
         }
         private async void BotOnMessage(object sender, MessageEventArgs e)
