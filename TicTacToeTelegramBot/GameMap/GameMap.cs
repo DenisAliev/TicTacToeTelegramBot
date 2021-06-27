@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -10,9 +11,15 @@ namespace TicTacToeTelegramBot.GameMap
 {
     class GameMap : IGameMap
     {
-        private uint _size = 3;
-        private int[,] _map = new int[3, 3];
-        public TelegramBotClient Bot { init; get; }
+        private readonly uint _size;
+        private readonly int[,] _map;
+        private readonly TelegramBotClient _bot;
+        public GameMap(TelegramBotClient bot, uint size)
+        {
+            _bot = bot;
+            _size = size;
+            _map = new int[_size, _size];
+        }
         private List<InlineKeyboardButton[]>RendKeys()
         {
             var keyboardButtons = new List<InlineKeyboardButton[]>();
@@ -29,15 +36,15 @@ namespace TicTacToeTelegramBot.GameMap
         }
         public async Task RenderAsync(Message message, GameMapEnum playerTurn)
         {
-            await Bot.EditMessageTextAsync(message.Chat, message.MessageId, 
+            await _bot.EditMessageTextAsync(message.Chat, message.MessageId, 
                 $"Player - { ( (playerTurn!=GameMapEnum.PlayerOne)? "X":"O" )}");
-            await Bot.EditMessageReplyMarkupAsync(message.Chat, message.MessageId,
+            await _bot.EditMessageReplyMarkupAsync(message.Chat, message.MessageId,
                 new InlineKeyboardMarkup(RendKeys()));
         }
 
         public async Task StartAsync(ChatId id)
         {
-            await Bot.SendTextMessageAsync(
+            await _bot.SendTextMessageAsync(
                 chatId: id,
                 text: "Player - X",
                 parseMode: ParseMode.Markdown,
@@ -53,24 +60,42 @@ namespace TicTacToeTelegramBot.GameMap
                 _map[x, y] = ((int)player);
                 return true;
             }
-            Console.WriteLine("this field is already occupied ");
             return false;
         }
 
-        public bool CheckWin()
+        private bool CheckLines(GameMapEnum player)
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < _size; i++)
             {
-                if (_map[i, 0] ==  _map[i, 1] && _map[i, 0] == _map[i, 2] && _map[i, 0] != 0)
+                int sum1 = 0;
+                int sum2 = 0;
+                for (int j = 0; j < _size; j++)
+                {
+                    sum1 += (_map[i, j] == (int) player) ? 1 : 0;
+                    sum2 += (_map[j, i] == (int) player) ? 1 : 0;
+                }
+                if (sum1 == _size || sum2 == _size)
+                {
                     return true;
-                if (_map[0, i] == _map[1, i] && _map[0, i] == _map[2, i] && _map[0, i] != 0)
-                    return true;
+                }
             }
-            if (_map[0, 0] == _map[1, 1] && _map[0, 0] == _map[2, 2]&& _map[0, 0] != 0)
-                return true;
-            if (_map[0, 2] ==  _map[1, 1] && _map[0, 2] == _map[2, 0] && _map[0, 2] != 0)
-                return true;
             return false;
+        }
+        private bool CheckDiagonals(GameMapEnum player)
+        {
+            int sum1 = 0;
+            int sum2 = 0;
+            for (int i = 0; i < _size; i++)
+            {
+                sum1 += (_map[i, _size - 1 - i] == (int) player) ? 1 : 0;
+                sum2 += (_map[_size - 1 - i, i] == (int) player) ? 1 : 0;
+            }
+            return sum1 == _size|| sum2 == _size;
+        }
+        
+        public bool CheckWin(GameMapEnum player)
+        {
+            return CheckLines(player) || CheckDiagonals(player);
         }
     }
 }
