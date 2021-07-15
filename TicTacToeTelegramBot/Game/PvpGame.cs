@@ -7,7 +7,7 @@ using TicTacToeTelegramBot.GameMap;
 
 namespace TicTacToeTelegramBot.Game
 {
-    public class Game: IDisposable
+    public class PvpGame: IGame
     {
         private readonly Player _playerOne;
         private readonly Player _playerTwo;
@@ -15,7 +15,7 @@ namespace TicTacToeTelegramBot.Game
         private readonly TelegramBotClient _bot;
         private readonly IGameMap _gameMap;
         public bool IsEnded { set; get; }
-        public Game( TelegramBotClient bot, Player playerOne, Player playerTwo, IGameMap gameMap)
+        public PvpGame( TelegramBotClient bot, Player playerOne, Player playerTwo, IGameMap gameMap)
         {
             _playerOne = playerOne;
             _playerTwo = playerTwo;
@@ -23,6 +23,10 @@ namespace TicTacToeTelegramBot.Game
             _playerTurn = GameMapEnum.PlayerOne;
             _gameMap = gameMap;
             bot.OnCallbackQuery += OnClick;
+        }
+        ~PvpGame()
+        {
+            _bot.OnCallbackQuery -= OnClick;
         }
         private async void OnClick(object sender, CallbackQueryEventArgs e)
         {
@@ -52,9 +56,6 @@ namespace TicTacToeTelegramBot.Game
                 }
             }
         }
-        public void Dispose()
-        {
-            _bot.OnCallbackQuery -= OnClick;
-        }
+     
     }
 }

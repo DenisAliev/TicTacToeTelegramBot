@@ -9,7 +9,7 @@ namespace TicTacToeTelegramBot.GameMap
         {
             _bot = bot;
         }
-        public IGameMap GetGameMap(GameMapTypeEnum gameMapType, uint size)
+        public IGameMap GetGameMap(GameMapTypeEnum gameMapType, int size)
         {
             IGameMap result = null;
             switch (gameMapType)

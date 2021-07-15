@@ -8,7 +8,7 @@ namespace TicTacToeTelegramBot
     {
         static void Main(string[] args)
         {
-            var botClient = new TelegramBotClient("YOUR TOKEN");
+            var botClient = new TelegramBotClient("YOUR_TOKEN");
 
             GameHub gameHub = new GameHub(botClient);
             
