@@ -11,13 +11,13 @@ namespace TicTacToeTelegramBot.GameMap
 {
     class GameMap : IGameMap
     {
-        private readonly uint _size;
+        private readonly int _size;
         private readonly int[,] _map;
         private readonly TelegramBotClient _bot;
-        public GameMap(TelegramBotClient bot, uint size)
+        public GameMap(TelegramBotClient bot, int size)
         {
             _bot = bot;
-            _size = size;
+            _size = ( Enumerable.Range(3,7).Contains(size))?size:3;
             _map = new int[_size, _size];
         }
         private List<InlineKeyboardButton[]>RendKeys()
