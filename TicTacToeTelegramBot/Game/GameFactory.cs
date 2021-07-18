@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices.ComTypes;
 using Telegram.Bot;
+using Telegram.Bot.Types;
 using TicTacToeTelegramBot.GameMap;
 
 namespace TicTacToeTelegramBot.Game
@@ -11,7 +12,7 @@ namespace TicTacToeTelegramBot.Game
         {
             _bot = bot;
         }
-        public IGame GetGame(GameTypeEnum gameType, IGameMap gameMap, params Player[] players)
+        public IGame GetGame(GameTypeEnum gameType, IGameMap gameMap, ChatId chatId, params Player[] players)
         {
             IGame result = null;
             switch (gameType)
@@ -19,7 +20,7 @@ namespace TicTacToeTelegramBot.Game
                 case GameTypeEnum.PvpGame:
                     if (players.Length == 2)
                     {
-                        result = new PvpGame(_bot, players[0], players[1], gameMap);
+                        result = new PvpGame(_bot, chatId, players[0], players[1], gameMap);
                     }
                     break;
             }
